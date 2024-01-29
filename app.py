@@ -24,7 +24,9 @@ app.layout = html.Div([
     # Dropdown to select column
     dcc.Dropdown(
         id='column-dropdown',
-        options=[],
+        options=["ObjectNumber", "Metadata_Site", "Metadata_Well",
+                "Intensity_MeanIntensity_DAPI", "Intensity_MeanIntensity_OCT4",
+                "Intensity_MeanIntensity_SOX17"],
         # Options will be dynamically populated based on the uploaded file
         value=None,
         multi=False,
@@ -34,33 +36,6 @@ app.layout = html.Div([
     # Histogram plot
     dcc.Graph(id='histogram-plot')
 ])
-
-
-# Callback to update column dropdown options based on the uploaded file
-@app.callback(
-    Output('column-dropdown', 'options'),
-    [Input('upload-data', 'contents')]
-)
-def update_column_dropdown(contents):
-    if contents is None:
-        return []
-
-    content_type, content_string = contents.split(',')
-    decoded = base64.b64decode(content_string)
-
-    # only load columns of interest
-    use_cols = ["ObjectNumber", "Metadata_Site", "Metadata_Well",
-                "Intensity_MeanIntensity_DAPI", "Intensity_MeanIntensity_OCT4",
-                "Intensity_MeanIntensity_SOX17"]
-    df = pd.read_csv(
-        io.StringIO(decoded.decode('utf-8')),
-        usecols=use_cols)
-
-    # Populate dropdown options with column names
-    options = [{'label': col, 'value': col} for col in df.columns]
-
-    return options
-
 
 # Callback to update the histogram plot based on the selected column
 @app.callback(
@@ -72,12 +47,18 @@ def update_histogram(selected_column, contents):
     if contents is None or selected_column is None:
         return no_update
 
+    # only load columns of interest
+    use_cols = ["ObjectNumber", "Metadata_Site", "Metadata_Well",
+                "Intensity_MeanIntensity_DAPI", "Intensity_MeanIntensity_OCT4",
+                "Intensity_MeanIntensity_SOX17"]
     content_type, content_string = contents.split(',')
     decoded = pd.read_csv(
-        io.StringIO(base64.b64decode(content_string).decode('utf-8')))
+        io.StringIO(base64.b64decode(content_string).decode('utf-8')),
+        usecols=use_cols)
 
     # Create histogram plot
-    fig = px.histogram(decoded, x=selected_column,
+    fig = px.histogram(decoded,
+                       x=selected_column,
                        title=f'Histogram of {selected_column}')
 
     return fig

@@ -1,4 +1,4 @@
-from dash import Dash, dcc, html, dash_table, Input, Output, State, callback
+from dash import Dash, dcc, html, dash_table, Input, Output, State, callback, no_update
 
 import base64
 import datetime
@@ -9,30 +9,17 @@ import plotly.express as px
 
 external_stylesheets = ['https://codepen.io/chriddyp/pen/bWLwgP.css']
 
-app = Dash(__name__, external_stylesheets=external_stylesheets)
+# Initialize the Dash app
+app = Dash(__name__)
 
+# Layout of the app
 app.layout = html.Div([
-    html.Div(children='Explore and analyze tables from icontent'),
+    # File upload component
     dcc.Upload(
         id='upload-data',
-        children=html.Div([
-            'Drag and Drop or ',
-            html.A('Select Files')
-        ]),
-        style={
-            'width': '100%',
-            'height': '60px',
-            'lineHeight': '60px',
-            'borderWidth': '1px',
-            'borderStyle': 'dashed',
-            'borderRadius': '5px',
-            'textAlign': 'center',
-            'margin': '10px'
-        }
+        children=html.Div(['Drag and Drop or ', html.A('Select a CSV File')]),
+        multiple=False
     ),
-    html.Hr(),
-
-    dash_table.DataTable(data=df.to_dict('records'), page_size=6),
 
     # Dropdown to select column
     dcc.Dropdown(
@@ -43,67 +30,60 @@ app.layout = html.Div([
         multi=False,
         placeholder="Select a column"
     ),
+
+    # Histogram plot
+    dcc.Graph(id='histogram-plot')
 ])
 
-def parse_contents(contents, filename, date):
-    content_type, content_string = contents.split(',')
 
+# Callback to update column dropdown options based on the uploaded file
+@app.callback(
+    Output('column-dropdown', 'options'),
+    [Input('upload-data', 'contents')]
+)
+def update_column_dropdown(contents):
+    if contents is None:
+        return []
+
+    content_type, content_string = contents.split(',')
     decoded = base64.b64decode(content_string)
 
     # only load columns of interest
     use_cols = ["ObjectNumber", "Metadata_Site", "Metadata_Well",
                 "Intensity_MeanIntensity_DAPI", "Intensity_MeanIntensity_OCT4",
                 "Intensity_MeanIntensity_SOX17"]
-    try:
-        if 'csv' in filename:
-            # Assume that the user uploaded a CSV file
-            df = pd.read_csv(
-                io.StringIO(decoded.decode('utf-8')),
-                usecols=use_cols)
-        elif 'xls' in filename:
-            # Assume that the user uploaded an excel file
-            df = pd.read_excel(io.BytesIO(decoded))
-    except Exception as e:
-        print(e)
-        return html.Div([
-            'There was an error processing this file.'
-        ])
+    df = pd.read_csv(
+        io.StringIO(decoded.decode('utf-8')),
+        usecols=use_cols)
 
-    return html.Div([
-        html.H5(filename),
-        html.H6(datetime.datetime.fromtimestamp(date)),
+    # Populate dropdown options with column names
+    options = [{'label': col, 'value': col} for col in df.columns]
 
-        html.H3('The first 5 rows of the file'),
-        dash_table.DataTable(
-            df.head().to_dict('records'),
-            [{'name': i, 'id': i} for i in df.columns]
-        ),
+    return options
 
-        dcc.Markdown(f'''
-        ### File overview
-        The file has {len(df)} rows and {len(df.columns)} columns
-        '''),
 
-        html.Hr(),  # horizontal line
+# Callback to update the histogram plot based on the selected column
+@app.callback(
+    Output('histogram-plot', 'figure'),
+    [Input('column-dropdown', 'value'),
+     Input('upload-data', 'contents')]
+)
+def update_histogram(selected_column, contents):
+    if contents is None or selected_column is None:
+        return no_update
 
-        # For debugging, display the raw contents provided by the web browser
-        html.Div('Raw Content'),
-        html.Pre(contents[0:200] + '...', style={
-            'whiteSpace': 'pre-wrap',
-            'wordBreak': 'break-all'
-        })
-    ])
+    content_type, content_string = contents.split(',')
+    decoded = pd.read_csv(
+        io.StringIO(base64.b64decode(content_string).decode('utf-8')))
 
-@callback(Output('output-data-upload', 'children'),
-              Input('upload-data', 'contents'),
-              State('upload-data', 'filename'),
-              State('upload-data', 'last_modified'))
-def update_output(list_of_contents, list_of_names, list_of_dates):
-    if list_of_contents is not None:
-        children = [
-            parse_contents(c, n, d) for c, n, d in
-            zip(list_of_contents, list_of_names, list_of_dates)]
-        return children
+    # Create histogram plot
+    fig = px.histogram(decoded, x=selected_column,
+                       title=f'Histogram of {selected_column}')
 
+    return fig
+
+
+# Run the app
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run_server(debug=True)
+

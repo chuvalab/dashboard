@@ -12,6 +12,7 @@ external_stylesheets = ['https://codepen.io/chriddyp/pen/bWLwgP.css']
 app = Dash(__name__, external_stylesheets=external_stylesheets)
 
 app.layout = html.Div([
+    html.Div(children='Explore and analyze tables from icontent'),
     dcc.Upload(
         id='upload-data',
         children=html.Div([
@@ -27,12 +28,21 @@ app.layout = html.Div([
             'borderRadius': '5px',
             'textAlign': 'center',
             'margin': '10px'
-        },
-        # Allow multiple files to be uploaded
-        multiple=True
+        }
     ),
+    html.Hr(),
 
-    html.Div(id='output-data-upload'),
+    dash_table.DataTable(data=df.to_dict('records'), page_size=6),
+
+    # Dropdown to select column
+    dcc.Dropdown(
+        id='column-dropdown',
+        options=[],
+        # Options will be dynamically populated based on the uploaded file
+        value=None,
+        multi=False,
+        placeholder="Select a column"
+    ),
 ])
 
 def parse_contents(contents, filename, date):

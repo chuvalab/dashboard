@@ -1,14 +1,14 @@
-from dash import Dash, dcc, html, dash_table, Input, Output, State, callback, \
-    no_update
+from dash import Dash, dcc, html, dash_table, Input, Output, State, \
+    callback, no_update
+import dash_bootstrap_components as dbc
 import base64
 import io
 import pandas as pd
 import plotly.express as px
 
-external_stylesheets = ['https://codepen.io/chriddyp/pen/bWLwgP.css']
 
 # Initialize the Dash app
-app = Dash(__name__)
+app = Dash(__name__, external_stylesheets=[dbc.themes.BOOTSTRAP])
 
 # Layout of the app
 app.layout = html.Div([
@@ -119,4 +119,4 @@ def update_histogram(selected_column, contents):
 
 # Run the app
 if __name__ == '__main__':
-    app.run_server(debug=True)
+    app.run_server(host='0.0.0.0', port=8050, debug=False)

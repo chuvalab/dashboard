@@ -1,14 +1,31 @@
 from dash import Dash, dcc, html, dash_table, Input, Output, State, \
     callback, no_update
-import dash_bootstrap_components as dbc
+from pathlib import Path
 import base64
 import io
+import uuid
+import pprint
+import json
+import dash_bootstrap_components as dbc
+import dash_uploader as du
 import pandas as pd
 import plotly.express as px
 
 
 # Initialize the Dash app
 app = Dash(__name__, external_stylesheets=[dbc.themes.BOOTSTRAP])
+
+UPlOAD_FOLDER_ROOT = '/tmp/uploads/'
+du.configure_upload(app, UPlOAD_FOLDER_ROOT)
+
+
+def get_upload_component(id):
+    return du.Upload(
+        id=id,
+        max_file_size=3800,  # in Mb
+        filetypes=['csv', 'gz'],
+        upload_id=uuid.uuid1(),  # Unique session id
+    )
 
 # Layout of the app
 app.layout = html.Div([
@@ -19,23 +36,8 @@ app.layout = html.Div([
             html.H2('File upload and overview'),
 
             # File upload component
-            dcc.Upload(
-                id='upload-data',
-                children=html.Div(
-                    ['Drag and Drop or ', html.A('Select a CSV File')]),
-                multiple=False,
-                style={
-                    'width': '100%',
-                    'height': '60px',
-                    'lineHeight': '60px',
-                    'borderWidth': '1px',
-                    'borderStyle': 'dashed',
-                    'borderRadius': '5px',
-                    'textAlign': 'center',
-                    'margin': '10px'
-                }
-            ),
-
+            get_upload_component(id='upload-data'),
+            html.Div(id='callback-output'),
             html.H3('File information'),
             html.Pre(id='file-description'),
             # Table head
@@ -60,36 +62,53 @@ app.layout = html.Div([
 
             # Histogram plot
             dcc.Graph(id='histogram-plot')
-        ])
-    ])
+        ]),
+    ]),
+    # dcc.Store stores the intermediate value
+    dcc.Store(id='intermediate-value'),
 ])
+
 
 # only load columns of interest
 use_cols = ["ObjectNumber", "Metadata_Site", "Metadata_Well",
             "Intensity_MeanIntensity_DAPI", "Intensity_MeanIntensity_OCT4",
             "Intensity_MeanIntensity_SOX17"]
 
+@du.callback(
+    output=[Output('callback-output', 'children'),
+            Output('intermediate-value', 'data')],
+    id='upload-data')
+def callback_on_completion(status: du.UploadStatus):
+    pprint.pprint(status.__dict__)
+    html_element = html.Ul([html.Li(str(x)) for x in status.uploaded_files])
+    latest_file = status.latest_file
+    df = pd.read_csv(latest_file,
+                     usecols=use_cols)
+    df_dump = df.to_json(orient='split')
+    df_dump_filename = {
+        'df': df_dump,
+        'filename': str(latest_file)
+    }
+    return html_element, json.dumps(df_dump_filename)
+
+
 
 @callback(
     [Output('head-table', 'columns'),
      Output('head-table', 'data'),
      Output('file-description', 'children')],
-    [Input('upload-data', 'contents'),
-     State('upload-data', 'filename')]
+    [Input('intermediate-value', 'data')]
 )
-def load_data(contents, filename):
-    if contents is None:
+def load_data(jsonified_df):
+    if jsonified_df is None:
         return no_update, no_update, no_update
 
-    content_type, content_string = contents.split(',')
-    df = pd.read_csv(
-        io.StringIO(base64.b64decode(content_string).decode('utf-8')),
-        usecols=use_cols)
-
+    df_filename = json.loads(jsonified_df)
+    df = pd.read_json(df_filename['df'], orient='split')
     cols = [{'name': i, 'id': i} for i in df.columns]
     head_table = df.head().to_dict('records')
     n_rows = df.shape[0]
-    file_info_text = f"File name: {filename} has a  total of {n_rows} rows. The first 5 are shown below"
+    file_info_text = f"File has a  total of {n_rows} rows. The first 5 are shown below"
     return cols, head_table, file_info_text
 
 
@@ -97,16 +116,14 @@ def load_data(contents, filename):
 @callback(
     Output('histogram-plot', 'figure'),
     [Input('column-dropdown', 'value'),
-     Input('upload-data', 'contents')]
+     Input('intermediate-value', 'data')]
 )
-def update_histogram(selected_column, contents):
-    if contents is None or selected_column is None:
+def update_histogram(selected_column, jsonified_df):
+    if jsonified_df is None or selected_column is None:
         return no_update
 
-    content_type, content_string = contents.split(',')
-    decoded = pd.read_csv(
-        io.StringIO(base64.b64decode(content_string).decode('utf-8')),
-        usecols=use_cols)
+    df_filename = json.loads(jsonified_df)
+    decoded = pd.read_json(df_filename['df'], orient='split')
 
     # Create histogram plot
     fig = px.histogram(decoded,

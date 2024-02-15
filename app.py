@@ -1,8 +1,5 @@
 from dash import Dash, dcc, html, dash_table, Input, Output, State, \
     callback, no_update
-from pathlib import Path
-import base64
-import io
 import uuid
 import pprint
 import json
@@ -63,6 +60,12 @@ app.layout = html.Div([
             # Histogram plot
             dcc.Graph(id='histogram-plot')
         ]),
+
+        # Heatmap Tab
+        dcc.Tab(label='Heatmap', children=[
+            html.H2('Heatmap of cell counts per well'),
+            dcc.Graph(id='heatmap-fig')
+        ])
     ]),
     # dcc.Store stores the intermediate value
     dcc.Store(id='intermediate-value'),
@@ -133,6 +136,26 @@ def update_histogram(selected_column, jsonified_df):
 
     return fig
 
+@callback(
+    Output('heatmap-fig', 'figure'),
+    Input('intermediate-value', 'data')
+)
+def heatmap(jsonified_df):
+    if jsonified_df is None:
+        return no_update
+
+    df_filename = json.loads(jsonified_df)
+    df = pd.read_json(df_filename['df'], orient='split')
+    well_counts = pd.DataFrame(df["Metadata_Well"].value_counts())
+    well_ids = well_counts.index.to_list()
+    well_counts["row"] = [well[0] for well in well_ids]
+    well_counts["cols"] = [well[1:] for well in well_ids]
+    matrix_well_counts = well_counts.pivot(index="row", columns="cols",
+                                           values="count")
+    matrix_well_counts.fillna(0, inplace=True)
+    heatmap_fig = px.imshow(matrix_well_counts)
+
+    return heatmap_fig
 
 # Run the app
 if __name__ == '__main__':

@@ -1,5 +1,6 @@
 from dash import Dash, dcc, html, dash_table, Input, Output, State, \
     callback, no_update
+from pathlib import Path
 import uuid
 import pprint
 import json
@@ -15,6 +16,7 @@ import plotly.express as px
 app = Dash(__name__, external_stylesheets=[dbc.themes.BOOTSTRAP])
 
 UPlOAD_FOLDER_ROOT = '/tmp/uploads/'
+Path(UPlOAD_FOLDER_ROOT).mkdir(parents=True, exist_ok=True)
 du.configure_upload(app, UPlOAD_FOLDER_ROOT)
 
 

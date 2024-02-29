@@ -7,7 +7,6 @@ The data is offered as a table where separate measurements are stored in columns
 There are three tabs in the app: The first tab provides the interface to upload the file and, after the upload completes, some basic info about the file is displayed. The second tab allows the user to select a column and then displays a histogram of the values in that column. The third tab displays a heatmap of the plate.
 
 ## How to run
-To run it:
 * Clone the git repo
 * Build the docker image by running something like `docker build -t dashboard:latest .`
 * Run the image with something like `docker run -p 8050:8050 dashboard:latest `

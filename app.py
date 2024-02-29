@@ -16,6 +16,7 @@ import plotly.express as px
 app = Dash(__name__, external_stylesheets=[dbc.themes.BOOTSTRAP])
 
 UPlOAD_FOLDER_ROOT = '/tmp/uploads/'
+UPlOAD_FOLDER_STORE = '/tmp/store/'
 Path(UPlOAD_FOLDER_ROOT).mkdir(parents=True, exist_ok=True)
 du.configure_upload(app, UPlOAD_FOLDER_ROOT)
 
@@ -50,10 +51,15 @@ app.layout = html.Div([
         # Overview tab
         dcc.Tab(label='Overview', children=[
             html.H2('File upload and overview'),
-
             # File upload component
             get_upload_component(id='upload-data'),
             html.Div(id='callback-output'),
+            html.Br(),
+            html.Button('Store File', id='button-store-file'),
+            html.Div(id='stored-file-confirm',
+                     children='Click on "Store File" button if you want to permanently '
+                              'store the file. Please keep in mind disk space is limited'),
+            html.Br(),
             html.H3('File information'),
             html.Pre(id='file-description'),
             # Table head
@@ -114,6 +120,19 @@ def callback_on_completion(status: du.UploadStatus):
     return html_element, json.dumps(df_dump_filename)
 
 
+@callback(Output("stored-file-confirm", "children"),
+          [Input("button-store-file", "n_clicks"),
+           Input('intermediate-value', 'data')])
+def store_file(n_clicks, jsonified_df):
+    if n_clicks is None or jsonified_df is None:
+        return no_update
+    elif n_clicks > 0:
+        df_filename = json.loads(jsonified_df)
+        filename = df_filename['filename']
+        if not os.path.exists(UPlOAD_FOLDER_STORE):
+            os.makedirs(UPlOAD_FOLDER_STORE)
+        shutil.copy(filename, UPlOAD_FOLDER_STORE)
+        return f"File has been successfuly copied in {UPlOAD_FOLDER_STORE}"
 
 @callback(
     [Output('head-table', 'columns'),
@@ -178,4 +197,4 @@ def heatmap(jsonified_df):
 
 # Run the app
 if __name__ == '__main__':
-    app.run_server(host='0.0.0.0', port=8050, debug=False)
+    app.run_server(host='0.0.0.0', port=8050, debug=True)

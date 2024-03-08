@@ -107,7 +107,6 @@ use_cols = ["ObjectNumber", "Metadata_Site", "Metadata_Well",
             Output('intermediate-value', 'data')],
     id='upload-data')
 def callback_on_completion(status: du.UploadStatus):
-    # pprint.pprint(status.__dict__)
     html_element = html.Ul([html.Li(str(x)) for x in status.uploaded_files])
     latest_file = status.latest_file
     df = pd.read_csv(latest_file,
@@ -133,6 +132,7 @@ def store_file(n_clicks, jsonified_df):
             os.makedirs(UPlOAD_FOLDER_STORE)
         shutil.copy(filename, UPlOAD_FOLDER_STORE)
         return f"File has been successfuly copied in {UPlOAD_FOLDER_STORE}"
+
 
 @callback(
     [Output('head-table', 'columns'),

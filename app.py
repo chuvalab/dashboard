@@ -1,6 +1,7 @@
 from dash import Dash, dcc, html, dash_table, Input, Output, State, \
     callback, no_update
 from pathlib import Path
+from io import StringIO
 import uuid
 import pprint
 import json
@@ -145,7 +146,7 @@ def load_data(jsonified_df):
         return no_update, no_update, no_update
 
     df_filename = json.loads(jsonified_df)
-    df = pd.read_json(df_filename['df'], orient='split')
+    df = pd.read_json(StringIO(df_filename['df']), orient='split')
     cols = [{'name': i, 'id': i} for i in df.columns]
     head_table = df.head().to_dict('records')
     n_rows = df.shape[0]
@@ -164,7 +165,7 @@ def update_histogram(selected_column, jsonified_df):
         return no_update
 
     df_filename = json.loads(jsonified_df)
-    decoded = pd.read_json(df_filename['df'], orient='split')
+    decoded = pd.read_json(StringIO(df_filename['df']), orient='split')
 
     # Create histogram plot
     fig = px.histogram(decoded,
@@ -183,7 +184,7 @@ def heatmap(jsonified_df):
         return no_update
 
     df_filename = json.loads(jsonified_df)
-    df = pd.read_json(df_filename['df'], orient='split')
+    df = pd.read_json(StringIO(df_filename['df']), orient='split')
     well_counts = pd.DataFrame(df["Metadata_Well"].value_counts())
     well_ids = well_counts.index.to_list()
     well_counts["row"] = [well[0] for well in well_ids]

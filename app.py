@@ -72,10 +72,7 @@ app.layout = html.Div([
             # Dropdown to select column
             dcc.Dropdown(
                 id='column-dropdown',
-                options=["ObjectNumber", "Metadata_Site", "Metadata_Well",
-                         "Intensity_MeanIntensity_DAPI",
-                         "Intensity_MeanIntensity_OCT4",
-                         "Intensity_MeanIntensity_SOX17"],
+                options=["Well", "Site", "Cell", "OCT4", "SOX17"],
                 # Options will be dynamically populated based on the
                 # uploaded file
                 value=None,
@@ -99,9 +96,7 @@ app.layout = html.Div([
 
 
 # only load columns of interest
-use_cols = ["ObjectNumber", "Metadata_Site", "Metadata_Well",
-            "Intensity_MeanIntensity_DAPI", "Intensity_MeanIntensity_OCT4",
-            "Intensity_MeanIntensity_SOX17"]
+use_cols = ["Well", "Site", "Cell", "OCT4", "SOX17"]
 
 @du.callback(
     output=[Output('callback-output', 'children'),
@@ -185,7 +180,7 @@ def heatmap(jsonified_df):
 
     df_filename = json.loads(jsonified_df)
     df = pd.read_json(StringIO(df_filename['df']), orient='split')
-    well_counts = pd.DataFrame(df["Metadata_Well"].value_counts())
+    well_counts = pd.DataFrame(df["Well"].value_counts())
     well_ids = well_counts.index.to_list()
     well_counts["row"] = [well[0] for well in well_ids]
     well_counts["cols"] = [well[1:] for well in well_ids]

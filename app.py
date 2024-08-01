@@ -69,6 +69,8 @@ app.layout = html.Div([
 
         # Histogram Tab
         dcc.Tab(label='Histogram', children=[
+            html.H2('Select a column to plot the histogram of the values'),
+
             # Dropdown to select column
             dcc.Dropdown(
                 id='column-dropdown',
@@ -81,12 +83,23 @@ app.layout = html.Div([
             ),
 
             # Histogram plot
-            dcc.Graph(id='histogram-plot')
+            dcc.Graph(id='histogram-plot'),
+
+            # Slider to select OCT4 lower limit
+            html.H2('Select OCT4 lower limit'),
+            html.Br(),
+            html.Div(id='OCT4-slider'),
+
+            # Slider to select SOX17 lower limit
+            html.H2('Select SOX17 lower limit'),
+            html.Br(),
+            html.Div(id='SOX17-slider'),
         ]),
 
         # Heatmap Tab
         dcc.Tab(label='Heatmap', children=[
             html.H2('Heatmap of cell counts per well'),
+            html.Div(id='filter-description'),
             dcc.Graph(id='heatmap-fig')
         ])
     ]),
@@ -107,10 +120,14 @@ def callback_on_completion(status: du.UploadStatus):
     latest_file = status.latest_file
     df = pd.read_csv(latest_file,
                      usecols=use_cols)
+    sox17_max = df["SOX17"].max()
+    oct4_max = df["OCT4"].max()
     df_dump = df.to_json(orient='split')
     df_dump_filename = {
         'df': df_dump,
-        'filename': str(latest_file)
+        'filename': str(latest_file),
+        'sox17_max': sox17_max,
+        'oct4_max': oct4_max
     }
     return html_element, json.dumps(df_dump_filename)
 
@@ -170,16 +187,49 @@ def update_histogram(selected_column, jsonified_df):
 
     return fig
 
-@callback(
-    Output('heatmap-fig', 'figure'),
-    Input('intermediate-value', 'data')
+@callback(Output('OCT4-slider', 'children'),
+          Input('intermediate-value', 'data')
 )
-def heatmap(jsonified_df):
+def create_oct4_slider(jsonified_df):
+    df_filename = json.loads(jsonified_df)
+    oct4_max = df_filename["oct4_max"]
+    oct4_slider = dcc.Slider(id='OCT4_low',
+                              min=0, 
+                              max=oct4_max, 
+                              marks={0: "0", oct4_max:str(oct4_max)}, 
+                              tooltip={"placement": "bottom", "always_visible": True},
+                              value=round(oct4_max/2, 1))
+    return oct4_slider
+
+@callback(Output('SOX17-slider', 'children'),
+          Input('intermediate-value', 'data')
+)
+def create_sox17_slider(jsonified_df):
+    df_filename = json.loads(jsonified_df)
+    sox17_max = df_filename["sox17_max"]
+    sox17_slider = dcc.Slider(id='SOX17_low',
+                              min=0, 
+                              max=sox17_max, 
+                              marks={0: "0", sox17_max:str(sox17_max)}, 
+                              tooltip={"placement": "bottom", "always_visible": True},
+                              value=round(sox17_max/2, 1))
+    return sox17_slider
+
+
+@callback(
+    [Output('heatmap-fig', 'figure'),
+     Output('filter-description', 'children')],
+    [Input('intermediate-value', 'data'),
+     Input('OCT4_low', 'value'),
+     Input('SOX17_low', 'value')]
+)
+def heatmap(jsonified_df, oct4_low, sox17_low):
     if jsonified_df is None:
         return no_update
 
     df_filename = json.loads(jsonified_df)
     df = pd.read_json(StringIO(df_filename['df']), orient='split')
+    df = df[(df['OCT4']>oct4_low) & (df["SOX17"]>sox17_low)]
     well_counts = pd.DataFrame(df["Well"].value_counts())
     well_ids = well_counts.index.to_list()
     well_counts["row"] = [well[0] for well in well_ids]
@@ -188,8 +238,8 @@ def heatmap(jsonified_df):
                                            values="count")
     matrix_well_counts.fillna(0, inplace=True)
     heatmap_fig = px.imshow(matrix_well_counts)
-
-    return heatmap_fig
+    filter_description = f"Table has been filtered for SOX17>{sox17_low} and OCT4>{sox17_low} intensity levels"
+    return heatmap_fig, filter_description
 
 # Run the app
 if __name__ == '__main__':

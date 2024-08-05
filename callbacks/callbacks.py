@@ -150,5 +150,5 @@ def heatmap(jsonified_df, oct4_low, sox17_low):
                                            values="count")
     matrix_well_counts.fillna(0, inplace=True)
     heatmap_fig = px.imshow(matrix_well_counts)
-    filter_description = f"Table has been filtered with SOX17>{sox17_low} and OCT4>{sox17_low} intensity levels"
+    filter_description = f"Table has been filtered with SOX17>{sox17_low} and OCT4>{oct4_low} intensity levels"
     return heatmap_fig, filter_description

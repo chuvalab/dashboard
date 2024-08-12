@@ -11,7 +11,7 @@ import shutil
 import plotly.express as px
 import dash_bootstrap_components as dbc
 
-
+width = 5
 UPlOAD_FOLDER_ROOT = '/tmp/uploads/'
 UPlOAD_FOLDER_STORE = '/tmp/store/'
 Path(UPlOAD_FOLDER_ROOT).mkdir(parents=True, exist_ok=True)
@@ -78,10 +78,10 @@ def load_data(jsonified_df):
     return cols, head_table, file_info_text
 
 
-# Callback to update the histogram plot based on the selected column
+# Callback to update the histogram A plot based on the selected column
 @callback(
-    Output('histogram-plot', 'figure'),
-    [Input('column-dropdown', 'value'),
+    Output('histogram-plot-a', 'figure'),
+    [Input('column-dropdown-a', 'value'),
      Input('intermediate-value', 'data')]
 )
 def update_histogram(selected_column, jsonified_df):
@@ -96,7 +96,26 @@ def update_histogram(selected_column, jsonified_df):
                        x=selected_column,
                        title=f'Histogram of {selected_column}',
                        nbins=400)
+    return fig
 
+# Callback to update the histogram B plot based on the selected column
+@callback(
+    Output('histogram-plot-b', 'figure'),
+    [Input('column-dropdown-b', 'value'),
+     Input('intermediate-value', 'data')]
+)
+def update_histogram(selected_column, jsonified_df):
+    if jsonified_df is None or selected_column is None:
+        return no_update
+
+    df_filename = json.loads(jsonified_df)
+    decoded = pd.read_json(StringIO(df_filename['df']), orient='split')
+
+    # Create histogram plot
+    fig = px.histogram(decoded,
+                       x=selected_column,
+                       title=f'Histogram of {selected_column}',
+                       nbins=400)
     return fig
 
 @callback(Output('OCT4-slider', 'children'),

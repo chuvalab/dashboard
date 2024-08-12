@@ -1,5 +1,6 @@
 from dash import Dash, dcc, html, dash_table, Input, Output, State, \
     callback, no_update
+import dash_bootstrap_components as dbc
 from callbacks.callbacks import *
 from pathlib import Path
 import uuid
@@ -56,40 +57,73 @@ app.layout = html.Div([
         ]),
 
         # Histogram Tab
-        dcc.Tab(label='Histogram', children=[
-            html.H2('Select a column to plot the histogram of the values'),
-
-            # Dropdown to select column
-            dcc.Dropdown(
-                id='column-dropdown',
-                options=["Well", "Site", "Cell", "OCT4", "SOX17"],
-                # Options will be dynamically populated based on the
-                # uploaded file
-                value=None,
-                multi=False,
-                placeholder="Select a column"
+        dcc.Tab(label='Histograms and Heatmap', children=[
+            html.H2('Select a column to plot the histogram of its values'),
+            dbc.Row(
+                [
+                    # Dropdown to select column A
+                    dbc.Col(
+                        dcc.Dropdown(
+                            id='column-dropdown-a',
+                            options=["Well", "Site", "Cell", "OCT4", "SOX17"],
+                            # Options will be dynamically populated based on the
+                            # uploaded file
+                            value="OCT4",
+                            multi=False,
+                            placeholder="Select a column"
+                    ),
+                    width=width),
+                    # Dropdown to select column B
+                    dbc.Col(
+                        dcc.Dropdown(
+                            id='column-dropdown-b',
+                            options=["Well", "Site", "Cell", "OCT4", "SOX17"],
+                            # Options will be dynamically populated based on the
+                            # uploaded file
+                            value="SOX17",
+                            multi=False,
+                            placeholder="Select a column"
+                    ),
+                    width=width),
+                ]
             ),
-
-            # Histogram plot
-            dcc.Graph(id='histogram-plot'),
-
-            # Slider to select OCT4 lower limit
-            html.H2('Select OCT4 lower limit'),
+            dbc.Row(
+                [
+                    # Hist A
+                    dbc.Col(
+                        dcc.Graph(id='histogram-plot-a'),
+                        width=width
+                    ),
+                    # Hist B
+                    dbc.Col(
+                        dcc.Graph(id='histogram-plot-b'),
+                        width=width
+                    ),
+                ]
+            ),
+            dbc.Row(
+                [
+                    dbc.Col(
+                            # Slider to select OCT4 lower limit
+                            [html.H2('Select OCT4 lower limit'),
+                            html.Br(),
+                            html.Div(id='OCT4-slider')],
+                            width=width),
+                    dbc.Col(
+                            # Slider to select SOX17 lower limit
+                            [html.H2('Select SOX17 lower limit'),
+                            html.Br(),
+                            html.Div(id='SOX17-slider')],
+                            width=width) 
+                ]
+            ),
+            
             html.Br(),
-            html.Div(id='OCT4-slider'),
-
-            # Slider to select SOX17 lower limit
-            html.H2('Select SOX17 lower limit'),
-            html.Br(),
-            html.Div(id='SOX17-slider'),
-        ]),
-
-        # Heatmap Tab
-        dcc.Tab(label='Heatmap', children=[
             html.H2('Heatmap of cell counts per well'),
             html.Div(id='filter-description'),
-            dcc.Graph(id='heatmap-fig')
-        ])
+            dcc.Graph(id='heatmap-fig'),
+        ]),
+
     ]),
     # dcc.Store stores the intermediate value
     dcc.Store(id='intermediate-value'),

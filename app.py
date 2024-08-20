@@ -72,7 +72,7 @@ app.layout = html.Div([
                             multi=False,
                             placeholder="Select a column"
                     ),
-                    width=width),
+                    width=width_histogram),
                     # Dropdown to select column B
                     dbc.Col(
                         dcc.Dropdown(
@@ -84,7 +84,7 @@ app.layout = html.Div([
                             multi=False,
                             placeholder="Select a column"
                     ),
-                    width=width),
+                    width=width_histogram),
                 ]
             ),
             dbc.Row(
@@ -92,12 +92,12 @@ app.layout = html.Div([
                     # Hist A
                     dbc.Col(
                         dcc.Graph(id='histogram-plot-a'),
-                        width=width
+                        width=width_histogram
                     ),
                     # Hist B
                     dbc.Col(
                         dcc.Graph(id='histogram-plot-b'),
-                        width=width
+                        width=width_histogram
                     ),
                 ]
             ),
@@ -108,13 +108,13 @@ app.layout = html.Div([
                             [html.H2('Select OCT4 lower limit'),
                             html.Br(),
                             html.Div(id='OCT4-slider')],
-                            width=width),
+                            width=width_histogram),
                     dbc.Col(
                             # Slider to select SOX17 lower limit
                             [html.H2('Select SOX17 lower limit'),
                             html.Br(),
                             html.Div(id='SOX17-slider')],
-                            width=width) 
+                            width=width_histogram) 
                 ]
             ),
             

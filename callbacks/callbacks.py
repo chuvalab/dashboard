@@ -11,7 +11,7 @@ import shutil
 import plotly.express as px
 import dash_bootstrap_components as dbc
 
-width = 5
+width_histogram = 5
 UPlOAD_FOLDER_ROOT = '/tmp/uploads/'
 UPlOAD_FOLDER_STORE = '/tmp/store/'
 Path(UPlOAD_FOLDER_ROOT).mkdir(parents=True, exist_ok=True)

@@ -97,6 +97,7 @@ def update_histogram(selected_column, jsonified_df):
 
     # Create histogram plot
     fig = px.histogram(decoded,
+                       range_x=[0, None],
                        x=selected_column,
                        title=f'Histogram of {selected_column}',
                        nbins=400)
@@ -117,6 +118,7 @@ def update_histogram(selected_column, jsonified_df):
 
     # Create histogram plot
     fig = px.histogram(decoded,
+                       range_x=[0, None],
                        x=selected_column,
                        title=f'Histogram of {selected_column}',
                        nbins=400)

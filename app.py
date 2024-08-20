@@ -56,7 +56,7 @@ app.layout = html.Div([
             dash_table.DataTable(id='head-table', columns=[])
         ]),
 
-        # Histogram Tab
+        # Histograms and Heatmap Tab
         dcc.Tab(label='Histograms and Heatmap', children=[
             html.H2('Select a column to plot the histogram of its values'),
             dbc.Row(

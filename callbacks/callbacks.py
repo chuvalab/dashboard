@@ -17,7 +17,11 @@ UPlOAD_FOLDER_STORE = '/tmp/store/'
 Path(UPlOAD_FOLDER_ROOT).mkdir(parents=True, exist_ok=True)
 
 # Initialize the Dash app
-app = Dash(__name__, external_stylesheets=[dbc.themes.BOOTSTRAP])
+# Notice suppress_callback_exceptions=True, this might need to be turned off 
+# for future debugging
+app = Dash(__name__, 
+           external_stylesheets=[dbc.themes.BOOTSTRAP],
+           suppress_callback_exceptions=True)
 du.configure_upload(app, UPlOAD_FOLDER_ROOT)
 
 # only load columns of interest
@@ -122,8 +126,11 @@ def update_histogram(selected_column, jsonified_df):
           Input('intermediate-value', 'data')
 )
 def create_oct4_slider(jsonified_df):
-    df_filename = json.loads(jsonified_df)
-    oct4_max = df_filename["oct4_max"]
+    if jsonified_df is None:
+        oct4_max = 5
+    else:
+        df_filename = json.loads(jsonified_df)
+        oct4_max = df_filename["oct4_max"]
     oct4_slider = dcc.Slider(id='OCT4_low',
                               min=0, 
                               max=oct4_max, 
@@ -136,8 +143,11 @@ def create_oct4_slider(jsonified_df):
           Input('intermediate-value', 'data')
 )
 def create_sox17_slider(jsonified_df):
-    df_filename = json.loads(jsonified_df)
-    sox17_max = df_filename["sox17_max"]
+    if jsonified_df is None:
+        sox17_max = 5
+    else:
+        df_filename = json.loads(jsonified_df)
+        sox17_max = df_filename["sox17_max"]
     sox17_slider = dcc.Slider(id='SOX17_low',
                               min=0, 
                               max=sox17_max, 
@@ -155,7 +165,7 @@ def create_sox17_slider(jsonified_df):
      Input('SOX17_low', 'value')]
 )
 def heatmap(jsonified_df, oct4_low, sox17_low):
-    if jsonified_df is None:
+    if jsonified_df is None or oct4_low is None or sox17_low is None:
         return no_update
 
     df_filename = json.loads(jsonified_df)

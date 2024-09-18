@@ -117,11 +117,17 @@ app.layout = html.Div([
                             width=width_histogram) 
                 ]
             ),
-            
+            # Heatmap cell counts
             html.Br(),
             html.H2('Heatmap of cell counts per well'),
             html.Div(id='filter-description'),
             dcc.Graph(id='heatmap-fig'),
+
+            # Heatmap percent cells double positive
+            html.Br(),
+            html.H2('Heatmap percent of double positive cell counts \
+                    per well'),
+            dcc.Graph(id='heatmap_pct-fig'),
         ]),
 
     ]),

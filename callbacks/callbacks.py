@@ -183,3 +183,45 @@ def heatmap(jsonified_df, oct4_low, sox17_low):
     heatmap_fig = px.imshow(matrix_well_counts)
     filter_description = f"Table has been filtered with SOX17>{sox17_low} and OCT4>{oct4_low} intensity levels"
     return heatmap_fig, filter_description
+
+
+@callback(
+    [Output('heatmap_pct-fig', 'figure')],
+    [Input('intermediate-value', 'data'),
+     Input('OCT4_low', 'value'),
+     Input('SOX17_low', 'value')]
+)
+def heatmap(jsonified_df, oct4_low, sox17_low):
+    if jsonified_df is None or oct4_low is None or sox17_low is None:
+        return no_update
+
+    df_filename = json.loads(jsonified_df)
+    df = pd.read_json(StringIO(df_filename['df']), orient='split')
+    well_count_matrix_selection = get_well_count_matrix(df=df, 
+                                                        oct4_low=oct4_low,
+                                                        sox17_low=sox17_low)
+    well_count_matrix_complete = get_well_count_matrix(df=df,
+                                                       oct4_low=0,
+                                                       sox17_low=0)
+    well_count_matrix_percent = 100*well_count_matrix_selection/\
+        well_count_matrix_complete
+    print(well_count_matrix_percent.head())
+    heatmap_fig = px.imshow(well_count_matrix_percent)
+    return [heatmap_fig]
+
+
+def get_well_count_matrix(df, oct4_low=0, sox17_low=0):
+    """
+    Returns a cell count matrix representing the cell counts in 
+    each well in the physical plate where cells are grown. Input data 
+    frame is filtered on minimum threshholds of oct4 and sox17
+    """
+    df = df[(df['OCT4']>oct4_low) & (df["SOX17"]>sox17_low)]
+    well_counts = pd.DataFrame(df["Well"].value_counts())
+    well_ids = well_counts.index.to_list()
+    well_counts["row"] = [well[0] for well in well_ids]
+    well_counts["cols"] = [well[1:] for well in well_ids]
+    matrix_well_counts = well_counts.pivot(index="row", columns="cols",
+                                           values="count")
+    matrix_well_counts.fillna(0, inplace=True)
+    return matrix_well_counts

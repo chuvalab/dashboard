@@ -11,3 +11,6 @@ There are three tabs in the app: The first tab provides the interface to upload 
 * Build the docker image by running something like `docker build -t dashboard:latest .`
 * Run the image with something like `docker run -p 8050:8050 dashboard:latest `
 * Connect to it from your browser
+
+## Demo
+![Demo](dash_demo.gif)

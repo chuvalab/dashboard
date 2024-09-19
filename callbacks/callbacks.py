@@ -200,12 +200,9 @@ def heatmap(jsonified_df, oct4_low, sox17_low):
     well_count_matrix_selection = get_well_count_matrix(df=df, 
                                                         oct4_low=oct4_low,
                                                         sox17_low=sox17_low)
-    well_count_matrix_complete = get_well_count_matrix(df=df,
-                                                       oct4_low=0,
-                                                       sox17_low=0)
+    well_count_matrix_complete = get_well_count_matrix(df=df)
     well_count_matrix_percent = 100*well_count_matrix_selection/\
         well_count_matrix_complete
-    print(well_count_matrix_percent.head())
     heatmap_fig = px.imshow(well_count_matrix_percent)
     return [heatmap_fig]
 

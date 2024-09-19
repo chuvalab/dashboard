@@ -172,14 +172,9 @@ def heatmap(jsonified_df, oct4_low, sox17_low):
 
     df_filename = json.loads(jsonified_df)
     df = pd.read_json(StringIO(df_filename['df']), orient='split')
-    df = df[(df['OCT4']>oct4_low) & (df["SOX17"]>sox17_low)]
-    well_counts = pd.DataFrame(df["Well"].value_counts())
-    well_ids = well_counts.index.to_list()
-    well_counts["row"] = [well[0] for well in well_ids]
-    well_counts["cols"] = [well[1:] for well in well_ids]
-    matrix_well_counts = well_counts.pivot(index="row", columns="cols",
-                                           values="count")
-    matrix_well_counts.fillna(0, inplace=True)
+    matrix_well_counts = get_well_count_matrix(df, 
+                                               oct4_low=oct4_low,
+                                               sox17_low=sox17_low)
     heatmap_fig = px.imshow(matrix_well_counts)
     filter_description = f"Table has been filtered with SOX17>{sox17_low} and OCT4>{oct4_low} intensity levels"
     return heatmap_fig, filter_description

@@ -163,14 +163,15 @@ def heatmap(jsonified_df, oct4_low, sox17_low):
     df = pd.read_json(StringIO(df_filename['df']), orient='split')
 
     # Heatmap counts
+    well_count_matrix_complete = get_well_count_matrix(df=df)
+    heatmap_fig = px.imshow(well_count_matrix_complete)
+    filter_description = f"Double positive cells have intensity levels above \
+        {sox17_low} for SOX17 and {oct4_low} for OCT4"
+
+    # Heatmap percent
     matrix_well_counts = get_well_count_matrix(df, 
                                                oct4_low=oct4_low,
                                                sox17_low=sox17_low)
-    heatmap_fig = px.imshow(matrix_well_counts)
-    filter_description = f"Table has been filtered with SOX17>{sox17_low} and OCT4>{oct4_low} intensity levels"
-
-    # Heatmap percent
-    well_count_matrix_complete = get_well_count_matrix(df=df)
     well_count_matrix_percent = 100*matrix_well_counts/\
         well_count_matrix_complete
     heatmap_pct_fig = px.imshow(well_count_matrix_percent)

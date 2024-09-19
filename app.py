@@ -77,13 +77,13 @@ app.layout = html.Div([
                 [
                     dbc.Col(
                             # Slider to select OCT4 lower limit
-                            [html.H2('Select OCT4 lower limit'),
+                            [html.H2('Select OCT4 min'),
                             html.Br(),
                             html.Div(id='OCT4-slider')],
                             width=width_histogram),
                     dbc.Col(
                             # Slider to select SOX17 lower limit
-                            [html.H2('Select SOX17 lower limit'),
+                            [html.H2('Select SOX17 min'),
                             html.Br(),
                             html.Div(id='SOX17-slider')],
                             width=width_histogram) 
@@ -91,16 +91,16 @@ app.layout = html.Div([
             ),
             # Heatmap cell counts
             html.Br(),
-            html.H2('Heatmap of cell counts per well'),
-            html.Div(id='filter-description'),
+            html.H2('Heatmap of total cell counts per well'),
             dcc.Graph(id='heatmap-fig'),
 
             # Heatmap percent cells double positive
             html.Br(),
-            html.H2('Heatmap percent of double positive cell counts \
+            html.H2('Heatmap of percentage of double positive cell counts \
                     per well'),
             html.P("""The percentage of cells that are double positive 
                    (SOX17 and OCT4 above the set threshold)"""),
+            html.Div(id='filter-description'),
             dcc.Graph(id='heatmap_pct-fig'),
         ]),
 

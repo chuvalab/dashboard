@@ -84,45 +84,33 @@ def load_data(jsonified_df):
 
 # Callback to update the histogram A plot based on the selected column
 @callback(
-    Output('histogram-plot-a', 'figure'),
-    [Input('column-dropdown-a', 'value'),
-     Input('intermediate-value', 'data')]
+    [Output('histogram-plot-a', 'figure'),
+     Output('histogram-plot-b', 'figure')],
+    [Input('intermediate-value', 'data')]
 )
-def update_histogram(selected_column, jsonified_df):
-    if jsonified_df is None or selected_column is None:
+def update_histogram(jsonified_df):
+    if jsonified_df is None: # or selected_column is None:
         return no_update
-
+    selected_column = "OCT4"
     df_filename = json.loads(jsonified_df)
-    decoded = pd.read_json(StringIO(df_filename['df']), orient='split')
+    df = pd.read_json(StringIO(df_filename['df']), orient='split') 
+    hist_oct4 = create_hist(df, selected_column="OCT4")
+    hist_sox17 = create_hist(df, selected_column="SOX17")
+    return hist_oct4, hist_sox17
 
-    # Create histogram plot
-    fig = px.histogram(decoded,
-                       range_x=[0, None],
-                       x=selected_column,
-                       title=f'Histogram of {selected_column}',
-                       nbins=400)
-    return fig
 
-# Callback to update the histogram B plot based on the selected column
-@callback(
-    Output('histogram-plot-b', 'figure'),
-    [Input('column-dropdown-b', 'value'),
-     Input('intermediate-value', 'data')]
-)
-def update_histogram(selected_column, jsonified_df):
-    if jsonified_df is None or selected_column is None:
-        return no_update
 
-    df_filename = json.loads(jsonified_df)
-    decoded = pd.read_json(StringIO(df_filename['df']), orient='split')
-
-    # Create histogram plot
-    fig = px.histogram(decoded,
-                       range_x=[0, None],
-                       x=selected_column,
-                       title=f'Histogram of {selected_column}',
-                       nbins=400)
-    return fig
+def create_hist(df, selected_column):
+    """
+    Helper function that plots a histogram
+    """
+    max_value = df[selected_column].max()
+    hist = px.histogram(df,
+                        range_x=[0, max_value],
+                        x=selected_column,
+                        title=f'Histogram of {selected_column}',
+                        nbins=400)
+    return hist
 
 @callback(Output('OCT4-slider', 'children'),
           Input('intermediate-value', 'data')

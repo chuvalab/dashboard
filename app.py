@@ -58,35 +58,7 @@ app.layout = html.Div([
 
         # Histograms and Heatmap Tab
         dcc.Tab(label='Histograms and Heatmap', children=[
-            html.H2('Select a column to plot the histogram of its values'),
-            dbc.Row(
-                [
-                    # Dropdown to select column A
-                    dbc.Col(
-                        dcc.Dropdown(
-                            id='column-dropdown-a',
-                            options=["Well", "Site", "Cell", "OCT4", "SOX17"],
-                            # Options will be dynamically populated based on the
-                            # uploaded file
-                            value="OCT4",
-                            multi=False,
-                            placeholder="Select a column"
-                    ),
-                    width=width_histogram),
-                    # Dropdown to select column B
-                    dbc.Col(
-                        dcc.Dropdown(
-                            id='column-dropdown-b',
-                            options=["Well", "Site", "Cell", "OCT4", "SOX17"],
-                            # Options will be dynamically populated based on the
-                            # uploaded file
-                            value="SOX17",
-                            multi=False,
-                            placeholder="Select a column"
-                    ),
-                    width=width_histogram),
-                ]
-            ),
+            html.H2('Histograms of OCT4 and SOX17 intensity values'),
             dbc.Row(
                 [
                     # Hist A
@@ -134,7 +106,6 @@ app.layout = html.Div([
     # dcc.Store stores the intermediate value
     dcc.Store(id='intermediate-value'),
 ])
-
 
 
 # Run the app

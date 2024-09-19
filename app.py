@@ -99,6 +99,8 @@ app.layout = html.Div([
             html.Br(),
             html.H2('Heatmap percent of double positive cell counts \
                     per well'),
+            html.P("""The percentage of cells that are double positive 
+                   (SOX17 and OCT4 above the set threshold)"""),
             dcc.Graph(id='heatmap_pct-fig'),
         ]),
 

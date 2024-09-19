@@ -149,6 +149,7 @@ def create_sox17_slider(jsonified_df):
 
 @callback(
     [Output('heatmap-fig', 'figure'),
+     Output('heatmap_pct-fig', 'figure'),
      Output('filter-description', 'children')],
     [Input('intermediate-value', 'data'),
      Input('OCT4_low', 'value'),
@@ -160,34 +161,20 @@ def heatmap(jsonified_df, oct4_low, sox17_low):
 
     df_filename = json.loads(jsonified_df)
     df = pd.read_json(StringIO(df_filename['df']), orient='split')
+
+    # Heatmap counts
     matrix_well_counts = get_well_count_matrix(df, 
                                                oct4_low=oct4_low,
                                                sox17_low=sox17_low)
     heatmap_fig = px.imshow(matrix_well_counts)
     filter_description = f"Table has been filtered with SOX17>{sox17_low} and OCT4>{oct4_low} intensity levels"
-    return heatmap_fig, filter_description
 
-
-@callback(
-    [Output('heatmap_pct-fig', 'figure')],
-    [Input('intermediate-value', 'data'),
-     Input('OCT4_low', 'value'),
-     Input('SOX17_low', 'value')]
-)
-def heatmap(jsonified_df, oct4_low, sox17_low):
-    if jsonified_df is None or oct4_low is None or sox17_low is None:
-        return no_update
-
-    df_filename = json.loads(jsonified_df)
-    df = pd.read_json(StringIO(df_filename['df']), orient='split')
-    well_count_matrix_selection = get_well_count_matrix(df=df, 
-                                                        oct4_low=oct4_low,
-                                                        sox17_low=sox17_low)
+    # Heatmap percent
     well_count_matrix_complete = get_well_count_matrix(df=df)
-    well_count_matrix_percent = 100*well_count_matrix_selection/\
+    well_count_matrix_percent = 100*matrix_well_counts/\
         well_count_matrix_complete
-    heatmap_fig = px.imshow(well_count_matrix_percent)
-    return [heatmap_fig]
+    heatmap_pct_fig = px.imshow(well_count_matrix_percent)
+    return heatmap_fig, heatmap_pct_fig, filter_description
 
 
 def get_well_count_matrix(df, oct4_low=0, sox17_low=0):

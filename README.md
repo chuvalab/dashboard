@@ -14,3 +14,9 @@ There are two tabs in the app: The first tab provides the interface to upload th
 
 ## Demo
 ![Demo](dash_demo.gif)
+
+## Future work
+* Adaptable to input format
+* Code modular, easy to maintain and tested
+* Addapt according to end user feedback
+* Part of a bigger project 

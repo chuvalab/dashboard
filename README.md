@@ -18,8 +18,8 @@ There are two tabs in the app: The first tab provides the interface to upload th
 ## Future work
 * Addapt and extend visualizations and functionality according to end user feedback and our own initiative. A few examples
   * User can add annotation to the heatmaps
-  * User can download output (images, tables)
-  * Save the output to a database
-* Code modular, easy to maintain and test as much as possible. Good coding practices!
+  * User can download output (images, other output)
+  * Save input and output to a database
+* Code modular, easy to maintain and test as much as possible. In short, good coding practices!
 * Addapt and extend visualizations and functionality according to end user feedback and our own initiative
 * Part of a bigger project, important we 

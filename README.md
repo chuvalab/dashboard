@@ -16,7 +16,10 @@ There are two tabs in the app: The first tab provides the interface to upload th
 ![Demo](dash_demo.gif)
 
 ## Future work
-* Adaptable to input format
-* Code modular, easy to maintain and tested
-* Addapt according to end user feedback
-* Part of a bigger project 
+* Addapt and extend visualizations and functionality according to end user feedback and our own initiative. A few examples
+  * User can add annotation to the heatmaps
+  * User can download output (images, tables)
+  * Save the output to a database
+* Code modular, easy to maintain and test as much as possible. Good coding practices!
+* Addapt and extend visualizations and functionality according to end user feedback and our own initiative
+* Part of a bigger project, important we 

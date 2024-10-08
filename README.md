@@ -22,4 +22,3 @@ There are two tabs in the app: The first tab provides the interface to upload th
   * Save input and output to a database
 * Code modular, easy to maintain and test as much as possible. In short, good coding practices!
 * Addapt and extend visualizations and functionality according to end user feedback and our own initiative
-* Part of a bigger project, important we 

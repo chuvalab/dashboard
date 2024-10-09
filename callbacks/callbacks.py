@@ -1,5 +1,5 @@
 from dash import Dash, dcc, html, Input, Output, \
-    callback, no_update
+    callback, no_update, dash_table
 from callbacks import callbacks
 from pathlib import Path
 from io import StringIO
@@ -69,22 +69,28 @@ def store_file(n_clicks, jsonified_df):
 
 
 @callback(
-    [Output('head-table', 'columns'),
-     Output('head-table', 'data'),
-     Output('file-description', 'children')],
-    [Input('intermediate-value', 'data')]
+    Output('file-description', 'children'),
+    Input('intermediate-value', 'data')
 )
 def load_data(jsonified_df):
     if jsonified_df is None:
-        return no_update, no_update, no_update
-
+        return html.Div("No file(s) uploaded")
+    
     df_filename = json.loads(jsonified_df)
-    df = pd.read_json(StringIO(df_filename['df']), orient='split')
-    cols = [{'name': i, 'id': i} for i in df.columns]
-    head_table = df.head().to_dict('records')
-    n_rows = df.shape[0]
-    file_info_text = f"File has a  total of {n_rows} rows. The first 5 are shown below"
-    return cols, head_table, file_info_text
+    file_description = []
+    for file_name, table_attributes in df_filename.items():
+        df = pd.read_json(StringIO(table_attributes['df']), orient='split')
+        cols = [{'name': i, 'id': i} for i in df.columns]
+        head_table = df.head().to_dict('records')
+        n_rows = df.shape[0]
+        file_info_text = f"File {file_name} has a total of {n_rows} rows. The first 5 are shown below"
+        file_description.append(html.Div([
+            html.Pre(file_info_text),
+            dash_table.DataTable(head_table, columns=cols),
+            html.Br(),
+        ])
+        )
+    return file_description
 
 
 # Callback to update the histogram A plot based on the selected column

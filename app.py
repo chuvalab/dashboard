@@ -61,9 +61,7 @@ app.layout = html.Div([
                               'store the file. Please keep in mind disk space is limited'),
             html.Br(),
             html.H3('File information'),
-            html.Pre(id='file-description'),
-            # Table head
-            dash_table.DataTable(id='head-table', columns=[])
+            html.Div(id='file-description'),
         ]),
 
         # Histograms and Heatmap Tab

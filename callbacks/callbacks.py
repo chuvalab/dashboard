@@ -33,19 +33,23 @@ use_cols = ["Well", "Site", "Cell", "OCT4", "SOX17"]
     id='upload-data')
 def callback_on_completion(status: du.UploadStatus):
     html_element = html.Ul([html.Li(str(x)) for x in status.uploaded_files])
-    latest_file = status.latest_file
-    df = pd.read_csv(latest_file,
-                     usecols=use_cols)
-    sox17_max = df["SOX17"].max()
-    oct4_max = df["OCT4"].max()
-    df_dump = df.to_json(orient='split')
-    df_dump_filename = {
-        'df': df_dump,
-        'filename': str(latest_file),
-        'sox17_max': sox17_max,
-        'oct4_max': oct4_max
-    }
-    return html_element, json.dumps(df_dump_filename)
+    uploaded_files = status.uploaded_files
+    df_filename_dump = {}
+    for file in uploaded_files:
+        input_file_name = str(file).split('/')[-1]
+        df = pd.read_csv(file,
+                        usecols=use_cols)
+        sox17_max = df["SOX17"].max()
+        oct4_max = df["OCT4"].max()
+        df_dump = df.to_json(orient='split')
+        df_filename_dump[input_file_name] = {
+            'df': df_dump,
+            'file_path': str(file),
+            'sox17_max': sox17_max,
+            'oct4_max': oct4_max
+        }
+    if status.is_completed:
+        return html_element, json.dumps(df_filename_dump)
 
 
 @callback(Output("stored-file-confirm", "children"),

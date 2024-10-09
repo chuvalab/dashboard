@@ -30,6 +30,17 @@ def get_upload_component(id):
         max_file_size=3800,  # in Mb
         filetypes=['csv', 'gz'],
         upload_id=uuid.uuid1(),  # Unique session id
+        max_files=3,
+        default_style={
+            'width': '50%',
+            'height': '60px',
+            'lineHeight': '60px',
+            'borderWidth': '1px',
+            'borderStyle': 'dashed',
+            'borderRadius': '5px',
+            'textAlign': 'center',
+            'margin': '10px'
+            }
     )
 
 

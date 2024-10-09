@@ -59,11 +59,12 @@ def store_file(n_clicks, jsonified_df):
     if n_clicks is None or jsonified_df is None:
         return no_update
     elif n_clicks > 0:
-        df_filename = json.loads(jsonified_df)
-        filename = df_filename['filename']
         if not os.path.exists(UPlOAD_FOLDER_STORE):
             os.makedirs(UPlOAD_FOLDER_STORE)
-        shutil.copy(filename, UPlOAD_FOLDER_STORE)
+        df_filename = json.loads(jsonified_df)
+        for file in df_filename.values():
+            filename = file['file_path']
+            shutil.copy(filename, UPlOAD_FOLDER_STORE)
         return f"File has been successfuly copied in {UPlOAD_FOLDER_STORE}"
 
 

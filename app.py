@@ -25,7 +25,6 @@ def emtpy_dir(folder):
 
 
 def get_upload_component(id):
-    emtpy_dir(UPlOAD_FOLDER_ROOT)
     return du.Upload(
         id=id,
         max_file_size=3800,  # in Mb
@@ -112,4 +111,5 @@ app.layout = html.Div([
 
 # Run the app
 if __name__ == '__main__':
+    emtpy_dir(UPlOAD_FOLDER_ROOT)
     app.run_server(host='0.0.0.0', port=8050, debug=True)

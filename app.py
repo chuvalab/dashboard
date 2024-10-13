@@ -67,36 +67,8 @@ app.layout = html.Div([
         # Histograms and Heatmap Tab
         dcc.Tab(label='Histograms and Heatmap', children=[
             html.H2('Histograms of OCT4 and SOX17 intensity values'),
-            dbc.Row(
-                [
-                    # Hist A
-                    dbc.Col(
-                        dcc.Graph(id='histogram-plot-a'),
-                        width=width_histogram
-                    ),
-                    # Hist B
-                    dbc.Col(
-                        dcc.Graph(id='histogram-plot-b'),
-                        width=width_histogram
-                    ),
-                ]
-            ),
-            dbc.Row(
-                [
-                    dbc.Col(
-                            # Slider to select OCT4 lower limit
-                            [html.H2('Select OCT4 min'),
-                            html.Br(),
-                            html.Div(id='OCT4-slider')],
-                            width=width_histogram),
-                    dbc.Col(
-                            # Slider to select SOX17 lower limit
-                            [html.H2('Select SOX17 min'),
-                            html.Br(),
-                            html.Div(id='SOX17-slider')],
-                            width=width_histogram) 
-                ]
-            ),
+            html.Div(id='histograms'),
+            
             # Heatmap cell counts
             html.Br(),
             html.H2('Heatmap of total cell counts per well'),

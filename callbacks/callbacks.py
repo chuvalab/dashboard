@@ -93,21 +93,63 @@ def load_data(jsonified_df):
     return file_description
 
 
-# Callback to update the histogram A plot based on the selected column
+# Callback to update the histograms plots for all input files based 
+# on the selected column
 @callback(
-    [Output('histogram-plot-a', 'figure'),
-     Output('histogram-plot-b', 'figure')],
-    [Input('intermediate-value', 'data')]
+    Output('histograms', 'children'),
+    Input('intermediate-value', 'data')
 )
-def update_histogram(jsonified_df):
+def update_histograms(jsonified_df):
     if jsonified_df is None: # or selected_column is None:
-        return no_update
-    selected_column = "OCT4"
+        return html.Div("No file(s) uploaded")
+    
     df_filename = json.loads(jsonified_df)
-    df = pd.read_json(StringIO(df_filename['df']), orient='split') 
-    hist_oct4 = create_hist(df, selected_column="OCT4")
-    hist_sox17 = create_hist(df, selected_column="SOX17")
-    return hist_oct4, hist_sox17
+    histograms = []
+    i = 0
+    for file_name, table_attributes in df_filename.items():
+        df = pd.read_json(StringIO(table_attributes['df']), orient='split')
+        hist_oct4 = create_hist(df, selected_column="OCT4")
+        hist_sox17 = create_hist(df, selected_column="SOX17")
+        hist_info_text = f'Histograms from {file_name}'
+        OCT4_slider_id = f"OCT4_f{str(i)}"
+        SOX17_slider_id = f"SOX17_f{str(i)}"
+        i += 1
+        histograms.append(
+            html.Div([
+                html.Pre(hist_info_text),
+                dbc.Row(
+                    [
+                        # Hist OCT4
+                        dbc.Col(
+                            dcc.Graph(figure=hist_oct4),
+                            width=width_histogram
+                        ),
+                        # Hist SOX17
+                        dbc.Col(
+                            dcc.Graph(figure=hist_sox17),
+                            width=width_histogram
+                        ),
+                    ]
+                ),
+"""                 dbc.Row(
+                    [
+                        dbc.Col(
+                                # Slider to select OCT4 lower limit
+                                [html.H2('Select OCT4 min'),
+                                html.Br(),
+                                html.Div(id=OCT4_slider_id)],
+                                width=width_histogram),
+                        dbc.Col(
+                                # Slider to select SOX17 lower limit
+                                [html.H2('Select SOX17 min'),
+                                html.Br(),
+                                html.Div(id=SOX17_slider_id)],
+                                width=width_histogram), 
+                    ]
+                ), """
+            ])
+        )
+    return histograms
 
 
 

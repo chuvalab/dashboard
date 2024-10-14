@@ -1,4 +1,4 @@
-from dash import Dash, dcc, html, Input, Output, \
+from dash import Dash, dcc, html, Input, Output, MATCH, \
     callback, no_update, dash_table
 from callbacks import callbacks
 from pathlib import Path
@@ -105,48 +105,48 @@ def update_histograms(jsonified_df):
     
     df_filename = json.loads(jsonified_df)
     histograms = []
-    i = 0
     for file_name, table_attributes in df_filename.items():
         df = pd.read_json(StringIO(table_attributes['df']), orient='split')
         hist_oct4 = create_hist(df, selected_column="OCT4")
         hist_sox17 = create_hist(df, selected_column="SOX17")
         hist_info_text = f'Histograms from {file_name}'
-        OCT4_slider_id = f"OCT4_f{str(i)}"
-        SOX17_slider_id = f"SOX17_f{str(i)}"
-        i += 1
+        OCT4_hist_id = f"OCT4_{file_name}"
+        SOX17_hist_id = f"SOX17_{file_name}"
         histograms.append(
             html.Div([
-                html.Pre(hist_info_text),
+                html.H2(hist_info_text),
                 dbc.Row(
                     [
                         # Hist OCT4
                         dbc.Col(
-                            dcc.Graph(figure=hist_oct4),
+                            dcc.Graph(id={'type': 'dynamic-histogram', 'index': OCT4_hist_id}, 
+                                      figure=hist_oct4),
                             width=width_histogram
                         ),
                         # Hist SOX17
                         dbc.Col(
-                            dcc.Graph(figure=hist_sox17),
+                            dcc.Graph(id={'type': 'dynamic-histogram', 'index': SOX17_hist_id},
+                                      figure=hist_sox17),
                             width=width_histogram
                         ),
                     ]
                 ),
-"""                 dbc.Row(
+                dbc.Row(
                     [
-                        dbc.Col(
-                                # Slider to select OCT4 lower limit
-                                [html.H2('Select OCT4 min'),
+                        # OCT4 lower limit
+                        dbc.Col([
+                                    html.Div(id={'type': 'dynamic-histogram-output', 
+                                                 'index': OCT4_hist_id}),
+                                    html.Br(),
+                    ]),
+                        # SOX17 lower limit
+                        dbc.Col([
+                                html.Div(id={'type': 'dynamic-histogram-output', 
+                                                 'index': SOX17_hist_id}),
                                 html.Br(),
-                                html.Div(id=OCT4_slider_id)],
-                                width=width_histogram),
-                        dbc.Col(
-                                # Slider to select SOX17 lower limit
-                                [html.H2('Select SOX17 min'),
-                                html.Br(),
-                                html.Div(id=SOX17_slider_id)],
-                                width=width_histogram), 
+                                ]), 
                     ]
-                ), """
+                ),
             ])
         )
     return histograms
@@ -164,6 +164,19 @@ def create_hist(df, selected_column):
                         title=f'Histogram of {selected_column}',
                         nbins=400)
     return hist
+
+# Callback to capture clickData for the dynamically created histograms
+@callback(
+    Output({'type': 'dynamic-histogram-output', 'index': MATCH}, 'children'),
+    Input({'type': 'dynamic-histogram', 'index': MATCH}, 'clickData'),
+)
+def return_click_data(clickData):
+    if clickData is not None:
+        # Extract the x-value from the clicked bar
+        x_value = clickData['points'][0]['x']
+        return html.Div(f'Selected minimum: {x_value}')
+    return html.Div("Click on the histogram to select an x-axis value as minimum")
+
 
 @callback(Output('OCT4-slider', 'children'),
           Input('intermediate-value', 'data')

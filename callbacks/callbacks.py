@@ -1,4 +1,4 @@
-from dash import Dash, dcc, html, Input, Output, MATCH, \
+from dash import Dash, dcc, html, Input, Output, State, MATCH, \
     callback, no_update, dash_table
 from callbacks import callbacks
 from pathlib import Path
@@ -119,13 +119,15 @@ def update_histograms(jsonified_df):
                     [
                         # Hist OCT4
                         dbc.Col(
-                            dcc.Graph(id={'type': 'dynamic-histogram', 'index': OCT4_hist_id}, 
+                            dcc.Graph(id={'type': 'dynamic-histogram', 
+                                          'index': OCT4_hist_id}, 
                                       figure=hist_oct4),
                             width=width_histogram
                         ),
                         # Hist SOX17
                         dbc.Col(
-                            dcc.Graph(id={'type': 'dynamic-histogram', 'index': SOX17_hist_id},
+                            dcc.Graph(id={'type': 'dynamic-histogram', 
+                                          'index': SOX17_hist_id},
                                       figure=hist_sox17),
                             width=width_histogram
                         ),
@@ -169,13 +171,19 @@ def create_hist(df, selected_column):
 @callback(
     Output({'type': 'dynamic-histogram-output', 'index': MATCH}, 'children'),
     Input({'type': 'dynamic-histogram', 'index': MATCH}, 'clickData'),
+    State({'type': 'dynamic-histogram', 'index': MATCH}, 'id'),
 )
-def return_click_data(clickData):
-    if clickData is not None:
+def return_click_data(clickData, id):
+    if clickData is not None and id is not None:
         # Extract the x-value from the clicked bar
+        print("What are the id keys?")
+        print(id['index'])
+        print(type(id))
+        print(id.keys())
         x_value = clickData['points'][0]['x']
-        return html.Div(f'Selected minimum: {x_value}')
-    return html.Div("Click on the histogram to select an x-axis value as minimum")
+        figure_id = id["index"]
+        return html.Div(f'Selected threshold from {figure_id}: {x_value}')
+    return html.Div("Click on the histogram to select an x-axis value as threshold")
 
 
 @callback(Output('OCT4-slider', 'children'),

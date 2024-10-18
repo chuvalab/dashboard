@@ -67,6 +67,8 @@ app.layout = html.Div([
         # Histograms and Heatmap Tab
         dcc.Tab(label='Histograms and Heatmap', children=[
             html.H2('Histograms of OCT4 and SOX17 intensity values'),
+            html.P("For each of the input files, click on the histogram to select the intensity \
+                threshold above which a cell is considered double positive."),
             html.Div(id='histograms'),
             
             # Heatmap cell counts

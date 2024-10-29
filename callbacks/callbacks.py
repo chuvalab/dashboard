@@ -195,7 +195,7 @@ def create_hist(df, selected_column, vline=0):
 )
 def return_click_data(clickData, filter_thresholds):
     trigger = ctx.triggered_id
-
+    x_value = 0
     if  trigger is not None:
         # Extract the x-value from the clicked histogram
         for event in clickData:
@@ -206,41 +206,6 @@ def return_click_data(clickData, filter_thresholds):
         filter_thresholds[figure_id] = x_value
         return filter_thresholds
     return no_update
-
-
-@callback(Output('OCT4-slider', 'children'),
-          Input('intermediate-value', 'data')
-)
-def create_oct4_slider(jsonified_df):
-    if jsonified_df is None:
-        oct4_max = 5
-    else:
-        df_filename = json.loads(jsonified_df)
-        oct4_max = df_filename["oct4_max"]
-    oct4_slider = dcc.Slider(id='OCT4_low',
-                              min=0, 
-                              max=oct4_max, 
-                              marks={0: "0", oct4_max:str(oct4_max)}, 
-                              tooltip={"placement": "bottom", "always_visible": True},
-                              value=round(oct4_max/2, 1))
-    return oct4_slider
-
-@callback(Output('SOX17-slider', 'children'),
-          Input('intermediate-value', 'data')
-)
-def create_sox17_slider(jsonified_df):
-    if jsonified_df is None:
-        sox17_max = 5
-    else:
-        df_filename = json.loads(jsonified_df)
-        sox17_max = df_filename["sox17_max"]
-    sox17_slider = dcc.Slider(id='SOX17_low',
-                              min=0, 
-                              max=sox17_max, 
-                              marks={0: "0", sox17_max:str(sox17_max)}, 
-                              tooltip={"placement": "bottom", "always_visible": True},
-                              value=round(sox17_max/2, 1))
-    return sox17_slider
 
 
 @callback(

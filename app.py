@@ -87,8 +87,10 @@ app.layout = html.Div([
         ]),
 
     ]),
-    # dcc.Store stores the intermediate value
+    # dcc.Store stores the intermediate value (a df) and the filter thresholds
+    # selected by the user on the histograms
     dcc.Store(id='intermediate-value'),
+    dcc.Store(id='filter-thresholds', data={}),
 ])
 
 

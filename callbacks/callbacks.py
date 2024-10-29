@@ -1,5 +1,5 @@
-from dash import Dash, dcc, html, Input, Output, State, MATCH, \
-    callback, no_update, dash_table
+from dash import Dash, dcc, html, Input, Output, State, MATCH, ALL, \
+    ctx, callback, no_update, dash_table
 from callbacks import callbacks
 from pathlib import Path
 from io import StringIO
@@ -30,11 +30,13 @@ use_cols = ["Well", "Site", "Cell", "OCT4", "SOX17"]
 @du.callback(
     output=[Output('callback-output', 'children'),
             Output('intermediate-value', 'data')],
+            #Output('filter-thresholds', 'data')]
     id='upload-data')
 def callback_on_completion(status: du.UploadStatus):
     html_element = html.Ul([html.Li(str(x)) for x in status.uploaded_files])
     uploaded_files = status.uploaded_files
     df_filename_dump = {}
+    # filter_thresholds = {}
     for file in uploaded_files:
         input_file_name = str(file).split('/')[-1]
         df = pd.read_csv(file,
@@ -46,10 +48,15 @@ def callback_on_completion(status: du.UploadStatus):
             'df': df_dump,
             'file_path': str(file),
             'sox17_max': sox17_max,
-            'oct4_max': oct4_max
+            'oct4_max': oct4_max,
         }
-    if status.is_completed:
-        return html_element, json.dumps(df_filename_dump)
+        
+        # Initiate the threshold for each file with 0
+        # filter_thresholds["OCT4_" + input_file_name] = 0
+        # filter_thresholds["SOX17_" + input_file_name] = 0
+
+    return html_element, json.dumps(df_filename_dump)# , filter_thresholds
+
 
 
 @callback(Output("stored-file-confirm", "children"),
@@ -97,9 +104,10 @@ def load_data(jsonified_df):
 # on the selected column
 @callback(
     Output('histograms', 'children'),
-    Input('intermediate-value', 'data')
+    Input('intermediate-value', 'data'),
+    Input('filter-thresholds', 'data'),
 )
-def update_histograms(jsonified_df):
+def update_histograms(jsonified_df, filter_thresholds):
     if jsonified_df is None: # or selected_column is None:
         return html.Div("No file(s) uploaded")
     
@@ -107,11 +115,19 @@ def update_histograms(jsonified_df):
     histograms = []
     for file_name, table_attributes in df_filename.items():
         df = pd.read_json(StringIO(table_attributes['df']), orient='split')
-        hist_oct4 = create_hist(df, selected_column="OCT4")
-        hist_sox17 = create_hist(df, selected_column="SOX17")
-        hist_info_text = f'Histograms from {file_name}'
         OCT4_hist_id = f"OCT4_{file_name}"
+        if OCT4_hist_id in filter_thresholds.keys():
+            vline = filter_thresholds[OCT4_hist_id]
+        else:
+            vline = 0
+        hist_oct4 = create_hist(df, selected_column="OCT4", vline=vline)
         SOX17_hist_id = f"SOX17_{file_name}"
+        if SOX17_hist_id in filter_thresholds.keys():
+            vline = filter_thresholds[SOX17_hist_id]
+        else:
+            vline = 0
+        hist_sox17 = create_hist(df, selected_column="SOX17", vline=vline)
+        hist_info_text = f'Histograms from {file_name}'
         histograms.append(
             html.Div([
                 html.H2(hist_info_text),
@@ -128,7 +144,7 @@ def update_histograms(jsonified_df):
                         dbc.Col(
                             dcc.Graph(id={'type': 'dynamic-histogram', 
                                           'index': SOX17_hist_id},
-                                      figure=hist_sox17),
+                                          figure=hist_sox17),
                             width=width_histogram
                         ),
                     ]
@@ -155,7 +171,7 @@ def update_histograms(jsonified_df):
 
 
 
-def create_hist(df, selected_column):
+def create_hist(df, selected_column, vline=0):
     """
     Helper function that plots a histogram
     """
@@ -165,25 +181,32 @@ def create_hist(df, selected_column):
                         x=selected_column,
                         title=f'Histogram of {selected_column}',
                         nbins=400)
+    hist.add_vline(x=vline, 
+                   line_width=2, 
+                   line_dash="dash", 
+                   line_color="red")
     return hist
 
 # Callback to capture clickData for the dynamically created histograms
 @callback(
-    Output({'type': 'dynamic-histogram-output', 'index': MATCH}, 'children'),
-    Input({'type': 'dynamic-histogram', 'index': MATCH}, 'clickData'),
-    State({'type': 'dynamic-histogram', 'index': MATCH}, 'id'),
+    Output('filter-thresholds', 'data'),
+    Input({'type': 'dynamic-histogram', 'index': ALL}, 'clickData'),
+    #State({'type': 'dynamic-histogram', 'index': ALL}, 'id'),
+    State('filter-thresholds', 'data')
 )
-def return_click_data(clickData, id):
-    if clickData is not None and id is not None:
-        # Extract the x-value from the clicked bar
-        print("What are the id keys?")
-        print(id['index'])
-        print(type(id))
-        print(id.keys())
-        x_value = clickData['points'][0]['x']
-        figure_id = id["index"]
-        return html.Div(f'Selected threshold from {figure_id}: {x_value}')
-    return html.Div("Click on the histogram to select an x-axis value as threshold")
+def return_click_data(clickData, filter_thresholds):
+    trigger = ctx.triggered_id
+
+    if  trigger is not None:
+        # Extract the x-value from the clicked histogram
+        for event in clickData:
+            if event is not None:
+                x_value = event['points'][0]['x']
+        figure_id = trigger["index"]
+
+        filter_thresholds[figure_id] = x_value
+        return filter_thresholds
+    return no_update
 
 
 @callback(Output('OCT4-slider', 'children'),

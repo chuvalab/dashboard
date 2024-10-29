@@ -191,7 +191,6 @@ def create_hist(df, selected_column, vline=0):
 @callback(
     Output('filter-thresholds', 'data'),
     Input({'type': 'dynamic-histogram', 'index': ALL}, 'clickData'),
-    #State({'type': 'dynamic-histogram', 'index': ALL}, 'id'),
     State('filter-thresholds', 'data')
 )
 def return_click_data(clickData, filter_thresholds):
